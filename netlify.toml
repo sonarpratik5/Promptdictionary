@@ -1,0 +1,10 @@
+[build]
+  command = "pnpm build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  COREPACK_ENABLE_STRICT = "0"
+
+[context.production.environment]
+  NEXT_PUBLIC_SITE_URL = "https://prompt-dictionary.netlify.app"

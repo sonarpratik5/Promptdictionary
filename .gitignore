@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Next.js build output and caches
+.next/
+out/
+build/
+.vercel/
+.netlify/
+
+# Local environment files and secrets
+.env
+.env.*
+!.env.example
+
+# TypeScript / test / coverage output
+*.tsbuildinfo
+coverage/
+*.lcov
+
+# Logs and local tooling output
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# OS/editor files
+.DS_Store
+.idea/
+.vscode/

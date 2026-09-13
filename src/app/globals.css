@@ -1,0 +1,164 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f8fa;
+  --background-secondary: #eef1f4;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --foreground: #182226;
+  --foreground-muted: #59666d;
+  --border: #dce2e5;
+  --border-strong: #85939c;
+  --accent: #086c63;
+  --accent-hover: #07564f;
+  --accent-soft: #e2f2ee;
+  --accent-on-dark: #83ddcb;
+  --accent-foreground: #ffffff;
+  --code-background: #14282b;
+  --code-foreground: #edf5f4;
+  --success: #157a4d;
+  --success-soft: #e7f7ee;
+  --danger: #b42338;
+  --danger-soft: #fdeaec;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-ink: var(--foreground);
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-on-dark: var(--accent-on-dark);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", system-ui, Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Menlo", "Cascadia Code", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--foreground);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@layer components {
+  .eyebrow {
+    @apply flex items-center gap-2 text-xs font-semibold uppercase tracking-[.14em] text-accent;
+  }
+
+  .card {
+    @apply rounded-2xl border border-border bg-surface;
+  }
+
+  .field {
+    @apply w-full rounded-xl border border-border-strong bg-surface px-3.5 py-3 text-base text-foreground outline-none transition placeholder:text-foreground-muted focus:border-accent focus:bg-surface focus:ring-4;
+    --tw-ring-color: var(--accent-soft);
+  }
+
+  .btn-primary, .btn-secondary, .btn-quiet {
+    @apply inline-flex items-center justify-center gap-2 min-h-11 rounded-xl px-5 py-2.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply bg-accent text-white hover:bg-accent-hover;
+  }
+
+  .btn-secondary {
+    @apply border border-border bg-surface text-foreground hover:border-border-strong;
+  }
+
+  .btn-quiet {
+    @apply bg-background-secondary text-foreground hover:bg-border/40;
+  }
+
+  .pill-tag {
+    @apply rounded-full bg-background-secondary px-2.5 py-1 text-sm font-medium text-foreground-muted;
+  }
+
+  .alert-danger, .alert-success, .alert-notice {
+    @apply rounded-xl px-4 py-3 text-sm leading-6;
+  }
+
+  .alert-danger {
+    background: var(--danger-soft);
+    color: var(--danger);
+  }
+
+  .alert-success {
+    background: var(--success-soft);
+    color: var(--success);
+  }
+
+  .alert-notice {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .preview-panel {
+    background: var(--code-background);
+    color: var(--code-foreground);
+  }
+
+  .page-title {
+    @apply text-4xl font-semibold leading-[1.12] tracking-tight text-foreground sm:text-5xl;
+    text-wrap: balance;
+  }
+
+  .back-link {
+    @apply inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-foreground-muted transition hover:text-accent;
+  }
+
+  .filter-chip {
+    @apply inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground-muted transition hover:border-accent hover:text-accent;
+  }
+
+  .filter-chip[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+}
+
+main { flex: 1; }
+main, section, input, select, textarea { min-width: 0; }
+main { scroll-margin-top: 6rem; }
+#explore { scroll-margin-top: 6rem; }
+button, select { cursor: pointer; }
+textarea { resize: vertical; }
+a, button, input, textarea, select { touch-action: manipulation; }
+pre { overflow-wrap: anywhere; }
+.preview-panel :focus-visible { outline-color: var(--accent-on-dark); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
