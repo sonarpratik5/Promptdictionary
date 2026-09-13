@@ -7,4 +7,4 @@
   COREPACK_ENABLE_STRICT = "0"
 
 [context.production.environment]
-  NEXT_PUBLIC_SITE_URL = "https://prompt-dictionary.netlify.app"
+  NEXT_PUBLIC_SITE_URL = "https://neon-hamster-764629.netlify.app"
