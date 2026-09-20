@@ -18,10 +18,10 @@ States: `READY`, `BLOCKED`, `IN PROGRESS`. Completed work is removed after `Hand
 | --- | --- | --- | --- |
 | FW-06 | BLOCKED | Design and migrate the versioned resource model for prompts, harnesses, skills, workflows, and guides without losing current prompt data. | Verified base migration; FW-04, FW-05 |
 | FW-07 | BLOCKED | Add resource editing/revisions with published material changes returning to `pending`. | FW-06 |
-| FW-08 | BLOCKED | Add comments/replies for questions, corrections, failure cases, and solutions with ownership, rate limits, reporting, and moderation. | FW-06 |
+| FW-08 | BLOCKED | Generalize discussion (comments/replies, edit history, solution recognition) from prompts to harnesses, skills, workflows, and guides. A prompt-scoped version (questions/corrections/failure-reports/solutions, one-level replies, ownership, rate limits, reporting) is implemented — see architecture.md "Discussion on prompts" — but not live-verified (FW-04). | FW-06 |
 | FW-09 | BLOCKED | Add type-aware harness, skill, workflow, and guide submission/detail experiences, including setup, prerequisites, checks, evidence, and limitations. | FW-06, FW-07 |
 | FW-10 | BLOCKED | Add moderator queue/actions for resources and discussion. | FW-06, FW-08 |
-| FW-11 | BLOCKED | Verify the implemented saved-prompt listing and account empty/error states against the migrated, typed Supabase schema. | FW-04, FW-05 |
+| FW-11 | BLOCKED | Verify the implemented saved-prompt listing, account empty/error states, profile editing, and per-prompt discussion (post/reply/delete/report) against the migrated, typed Supabase schema. | FW-04, FW-05 |
 | FW-12 | IN PROGRESS | Automate the highest-risk authenticated flows (submit, edit, bookmark, feedback, moderation) now that Playwright is configured and the anonymous fixture-backed flows (discovery/filter, back/forward, adapt/copy/share, share-link hydration, keyboard/skip-link, mobile/tablet/desktop overflow, 200% zoom, reduced motion) are automated across chromium/firefox/webkit in `tests/e2e/` — see [tests.md](tests.md). | Test users/non-production Supabase (FW-03, FW-04) |
 | FW-13 | BLOCKED | Verify Netlify environment variables, Supabase redirect URL, and deployment smoke behavior. | Deployment/dashboard access; FW-03 |
 | FW-14 | BLOCKED | Add version-bound failure/evaluation records for coding agents with fixtures, expected/observed results, model/tool versions, metrics, and evidence tier. | FW-06, FW-07 |

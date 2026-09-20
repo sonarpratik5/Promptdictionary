@@ -28,6 +28,7 @@ Start with coding agents because outputs can often be checked with tests, type c
 - Resource pages with purpose, setup, reusable content, prerequisites, examples, limitations, version compatibility, and evidence.
 - Local adaptation, copy, and shareable variants without sign-in where the resource supports them.
 - Accounts for publishing and revising resources, bookmarking, usefulness feedback, comments/replies, reporting, and moderation.
+- A public profile (handle, display name, bio) per account, so authorship on resources and discussion is attributable, not anonymous.
 - Discussion that records questions, corrections, failure cases, and practical solutions around each resource.
 
 ## Later

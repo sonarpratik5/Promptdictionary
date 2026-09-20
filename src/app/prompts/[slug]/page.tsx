@@ -3,8 +3,10 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { PromptCustomizer } from "@/components/prompt-customizer";
 import { PromptCommunityActionForms } from "@/components/prompt-community-actions";
+import { PromptComments } from "@/components/prompt-comments";
 import { getCommunityPromptState } from "@/features/prompts/account";
 import { getPublishedPromptBySlug, listPromptSlugs } from "@/features/prompts/queries";
+import { listCommentsForPrompt } from "@/features/comments/queries";
 
 /** Database-backed prompts need on-demand route rendering; unknown slugs still 404. */
 export const dynamicParams = true;
@@ -21,6 +23,7 @@ export default async function PromptPage({ params }: { params: Promise<{ slug: s
   // addressed safely. Render the same honest unavailable state used when the
   // project connection cannot be reached rather than omitting this capability.
   const communityState = prompt.id ? await getCommunityPromptState(prompt.id) : { kind: "unavailable" as const };
+  const comments = prompt.id ? await listCommentsForPrompt(prompt.id) : [];
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-5 py-8 md:py-12">
       <Link href="/" className="back-link"><span aria-hidden="true">←</span> Back to all prompts</Link>
@@ -50,6 +53,9 @@ export default async function PromptPage({ params }: { params: Promise<{ slug: s
           : communityState.kind === "anonymous" ? <p className="text-sm leading-6 text-foreground-muted"><Link href={`/auth?next=${encodeURIComponent(`/prompts/${prompt.slug}`)}`} className="font-semibold text-accent underline-offset-4 hover:underline">Sign in</Link> to save this prompt, leave feedback, or report a problem.</p>
             : <PromptCommunityActionForms promptId={prompt.id!} initialSaved={communityState.saved} initialFeedback={communityState.feedback} />}
       </section>
+      {prompt.id
+        ? <PromptComments promptId={prompt.id} promptSlug={prompt.slug} comments={comments} canInteract={communityState.kind === "authenticated"} />
+        : <p className="mt-10 border-t border-border pt-8 text-sm leading-6 text-foreground-muted">Discussion is unavailable for this sample prompt.</p>}
     </main>
   );
 }

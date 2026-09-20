@@ -4,7 +4,7 @@ This file owns durable technical and UX contracts. Product scope is in [PRODUCT.
 
 ## Status
 
-Prompt discovery/adaptation and auth boundaries are implemented. Supabase-backed prompt contribution and community actions, including per-viewer saved/feedback state and safe post-auth return paths, are implemented but not runtime-verified. Harnesses, skills, workflows, guides, discussion, revision history, and evaluation records are product targets, not implemented behavior. The database migration is proposed until executed and integration-tested.
+Prompt discovery/adaptation and auth boundaries are implemented. Supabase-backed prompt contribution, community actions (including per-viewer saved/feedback state and safe post-auth return paths), public profiles, and one-level-deep discussion on prompts are implemented but not runtime-verified. Harnesses, skills, workflows, guides, discussion on non-prompt resources, revision history, and evaluation records are product targets, not implemented behavior. Both database migrations are proposed until executed and integration-tested.
 
 ## Stack and boundaries
 
@@ -20,6 +20,8 @@ Prompt discovery/adaptation and auth boundaries are implemented. Supabase-backed
 src/app/                    routes, layouts, loading/error states
 src/components/             shared and interactive UI
 src/features/prompts/       prompt queries, schemas, rendering, sharing, mutations
+src/features/profiles/      public profile queries, schema, mutations
+src/features/comments/      per-prompt discussion queries, schema, mutations
 src/features/auth/          credential validation and auth actions
 src/lib/supabase/           browser/server clients and future generated types
 supabase/migrations/        schema, constraints, triggers, indexes, RLS
@@ -57,7 +59,24 @@ Routes must use `src/features/prompts/queries.ts`; they must not import fixture 
 - Evidence distinguishes author claims, community experience, and reproducible evaluations. Token, compute, accuracy, and unsupported-output claims require a stated method and baseline; popularity is not evidence.
 - Authenticated users create resources and discussion; anonymous users can read published content. Ownership, moderation, rate limits, and reporting are enforced server-side and in database policy.
 
-The current schema models prompts, bookmarks, feedback, and reports only. General resources, revisions, comments, solution signals, failure cases, and evaluations require a new reviewed migration after the existing migration is verified.
+### Discussion on prompts (implemented, scoped ahead of FW-06)
+
+Comments were implemented for the `prompts` resource only, ahead of the general normalized resource model, resolving the open contracts below:
+
+- **Nesting limit:** one level — a top-level comment plus direct replies; a reply's target must itself be a top-level comment (enforced in a database trigger, since it depends on existing rows).
+- **Kinds:** `question`, `correction`, `failure_report`, `solution`, `general`, chosen by the poster.
+- **Edit history:** none. A comment cannot be edited in place, only deleted by its author or a moderator; this avoids modeling comment revisions before resource revisions exist (FW-07).
+- **Solution recognition:** none yet. `solution` is a self-applied label only; accepted-answer/solution-recognition policy stays in `PRODUCT.md`'s Later list until real usage exists.
+- Reporting reuses the `reports` table: a report now targets exactly one of `prompt_id` or `comment_id`.
+
+Generalizing discussion to harnesses, skills, workflows, and guides (and adding comment edit history, richer moderation actions, and solution recognition) still requires FW-06's normalized resource model; this prompt-scoped version is not a substitute for it.
+
+## Public profiles (implemented)
+
+- Every account gets exactly one public profile: a unique `handle` (used at `/u/<handle>`), a `display_name`, and an optional `bio`. A profile is created automatically at signup (a database trigger derives a default handle from the email) so authored comments and prompts always have an identity to link to; the owner can change handle/name/bio from `/account`.
+- Profiles are public by design — anyone can read one by handle — because architecture already commits to public authorship ("Published resources retain authorship"). Only the owner can write their own row.
+
+The current schema models prompts, bookmarks, feedback, reports, profiles, and prompt comments. General resources, revisions, solution signals, failure cases, and evaluations require a new reviewed migration after the existing migrations are verified.
 
 ## Data and authorization decisions
 
@@ -66,8 +85,8 @@ The current schema models prompts, bookmarks, feedback, and reports only. Genera
 - Owners may edit their submissions and delete only draft/rejected items. The account page only links to a prompt's own detail page when it is published, since that route resolves published rows only; other statuses show the title as plain text. Identity and moderator role are derived server-side and enforced again with RLS/triggers.
 - Bookmarks are unique per user/prompt. Feedback is one upserted boolean usefulness vote per user/prompt.
 - Database results order by `(published_at desc, id)` and use keyset pagination. Fixture results keep insertion order.
-- Database triggers limit each user to 20 prompt submissions and 10 reports per rolling 24 hours; each trigger takes a per-owner `pg_advisory_xact_lock` before counting so concurrent inserts near the boundary cannot all read the same pre-insert count and exceed the cap.
-- Anonymous reads expose published rows only; owners can also read their rows; moderators can read all rows.
+- Database triggers limit each user to 20 prompt submissions, 10 reports, and 30 comments per rolling 24 hours; each trigger takes a per-owner `pg_advisory_xact_lock` before counting so concurrent inserts near the boundary cannot all read the same pre-insert count and exceed the cap.
+- Anonymous reads expose published rows only; owners can also read their rows; moderators can read all rows. Profiles are the one public exception: any viewer can read any profile by handle.
 
 These rules are encoded in `supabase/migrations/20260912200000_prompts_schema.sql` and `src/features/prompts/schema.ts`, but database behavior is not verified yet.
 
@@ -81,7 +100,7 @@ These rules are encoded in `supabase/migrations/20260912200000_prompts_schema.sq
 
 - Choose an exact database page size and user-facing rate-limit/backoff behavior.
 - Generate `src/lib/supabase/database.types.ts` after connecting the non-production project.
-- Define the normalized resource/revision/comment/evidence schema, comment nesting limit, edit history, and solution-recognition policy before platform implementation.
+- Define the normalized resource/revision/evidence schema (beyond prompts) before generalizing discussion, moderation, and comments to harnesses, skills, workflows, and guides.
 - Define coding-agent evaluation fixtures and a reproducible evidence format before displaying efficiency or accuracy comparisons.
 - Finalize brand tokens before considering a complete dark theme.
 
