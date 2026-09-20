@@ -14,7 +14,7 @@ A public knowledge platform for reliable AI agents, combining versioned prompts/
 - **Not implemented:** harness/skill/workflow/guide resource types, comments/replies, failure/evaluation records, revision history, contribution editing, moderator queue/actions, and database integration tests.
 - **Not verified:** live auth, migration execution, RLS/trigger behavior, authenticated browser flows (submit/edit/bookmark/feedback/moderation), and production deployment behavior.
 
-The worktree contains in-progress changes. Inspect it before editing and do not treat implementation as verification.
+The previously in-progress worktree changes (contribution, account, and community-action features) are committed and pushed to `origin/main`. Do not treat implementation as verification.
 
 ## Context map
 
