@@ -17,6 +17,10 @@ build/
 *.tsbuildinfo
 coverage/
 *.lcov
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
 
 # Logs and local tooling output
 *.log

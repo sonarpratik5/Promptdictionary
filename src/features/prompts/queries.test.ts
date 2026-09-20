@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getPromptBySlug, listPromptSlugs, listPrompts, listTags, listUseCases } from "./queries";
+import { getPromptBySlug, listPromptSlugs, listPrompts, listPublishedPromptFacets, listTags, listUseCases } from "./queries";
 
 describe("prompt queries", () => {
   it("combines search and use-case filters with AND semantics", () => {
@@ -43,5 +43,12 @@ describe("prompt queries", () => {
       "plain-language-explainer",
       "code-review-checklist",
     ]);
+  });
+
+  it("uses fixture facets while no Supabase project is configured", async () => {
+    await expect(listPublishedPromptFacets()).resolves.toEqual({
+      useCases: ["Development", "Product management", "Writing"],
+      tags: ["code", "editing", "education", "planning", "quality", "research", "review", "strategy", "writing"],
+    });
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validatePromptSubmission } from "./schema";
+import { validatePromptId, validatePromptSubmission } from "./schema";
 
 const validSubmission = {
   title: "Clear product brief",
@@ -52,6 +52,14 @@ describe("validatePromptSubmission", () => {
     expect(result).toEqual({ error: "Variable names must be unique." });
   });
 
+  it("rejects an editable detail that cannot be substituted into the template", () => {
+    const result = validatePromptSubmission({
+      ...validSubmission,
+      variables: [{ name: "audience", label: "Audience", description: "Who the brief is for." }],
+    });
+    expect(result).toEqual({ error: "Each editable detail must appear in the template as its {{token_name}}." });
+  });
+
   it("requires a sample input and output together, not just one", () => {
     const result = validatePromptSubmission({ ...validSubmission, sampleInput: "example input" });
     expect(result).toEqual({ error: "Provide both a sample input and output, or neither." });
@@ -74,5 +82,13 @@ describe("validatePromptSubmission", () => {
   it("rejects a malformed tested-at date", () => {
     const result = validatePromptSubmission({ ...validSubmission, testedAt: "09/12/2026" });
     expect(result).toEqual({ error: expect.any(String) });
+  });
+});
+
+describe("validatePromptId", () => {
+  it("accepts UUID hidden-field values and rejects arbitrary identifiers", () => {
+    expect(validatePromptId("02d7e41f-944b-482f-86c2-3f29fb4f76f4")).toBe("02d7e41f-944b-482f-86c2-3f29fb4f76f4");
+    expect(validatePromptId("not-a-prompt-id")).toBeNull();
+    expect(validatePromptId(null)).toBeNull();
   });
 });

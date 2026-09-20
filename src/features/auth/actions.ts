@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { credentialsFromFormData, validateCredentials, validateEmail, validateNewPassword } from "./credentials";
+import { credentialsFromFormData, safeAuthRedirect, validateCredentials, validateEmail, validateNewPassword } from "./credentials";
 
 export type AuthState = { error?: string; message?: string };
 
@@ -17,7 +17,7 @@ export async function signIn(_: AuthState, formData: FormData): Promise<AuthStat
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Authentication is unavailable." };
   }
-  redirect("/");
+  redirect(safeAuthRedirect(formData.get("next")));
 }
 
 export async function signUp(_: AuthState, formData: FormData): Promise<AuthState> {
@@ -26,13 +26,15 @@ export async function signUp(_: AuthState, formData: FormData): Promise<AuthStat
   const { email, password } = validation.credentials;
   try {
     const supabase = await createSupabaseServerClient();
-    const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"}/auth/callback` } });
+    const callback = new URL("/auth/callback", process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000");
+    callback.searchParams.set("next", safeAuthRedirect(formData.get("next")));
+    const { data, error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: callback.toString() } });
     if (error) return { error: error.message };
     if (!data.session) return { message: "Check your email to confirm your account, then sign in." };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Authentication is unavailable." };
   }
-  redirect("/");
+  redirect(safeAuthRedirect(formData.get("next")));
 }
 
 export async function signOut() {

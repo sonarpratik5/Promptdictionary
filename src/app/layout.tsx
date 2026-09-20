@@ -24,7 +24,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             </Link>
             <nav aria-label="Main navigation" className="flex items-center gap-2 text-sm">
               <Link href="/#explore" className="btn-secondary px-3.5 py-1.5">Library</Link>
-              {user ? <form action={signOut}><button className="btn-primary px-3.5 py-1.5">Sign out</button></form> : <Link href="/auth" className="btn-primary px-3.5 py-1.5">Sign in</Link>}
+              <Link href="/submit" className="btn-secondary px-3.5 py-1.5">Share a prompt</Link>
+              {user ? <><Link href="/account" className="btn-secondary px-3.5 py-1.5">Account</Link><form action={signOut}><button className="btn-primary px-3.5 py-1.5">Sign out</button></form></> : <Link href="/auth" className="btn-primary px-3.5 py-1.5">Sign in</Link>}
             </nav>
           </div>
         </header>

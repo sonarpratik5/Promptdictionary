@@ -1,5 +1,5 @@
 import { PromptLibrary } from "@/components/prompt-library";
-import { listPrompts, listTags, listUseCases } from "@/features/prompts/queries";
+import { listPublishedPromptFacets, listPublishedPrompts } from "@/features/prompts/queries";
 
 type SearchParams = Promise<{ q?: string | string[]; useCase?: string | string[]; tag?: string | string[] }>;
 const one = (value: string | string[] | undefined) => typeof value === "string" ? value : "";
@@ -9,16 +9,17 @@ export default async function Home({ searchParams }: { searchParams: SearchParam
   const query = one(params.q).trim();
   const useCase = one(params.useCase).trim();
   const tag = one(params.tag).trim();
-  const visiblePrompts = listPrompts({ query, useCase, tag });
-  const useCases = listUseCases();
-  const tags = listTags();
+  const [visiblePrompts, { useCases, tags }] = await Promise.all([
+    listPublishedPrompts({ query, useCase, tag }),
+    listPublishedPromptFacets(),
+  ]);
 
   return (
     <main id="main-content" tabIndex={-1}>
       <header className="mx-auto max-w-6xl px-5 pb-8 pt-10 md:pt-14">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <p className="eyebrow">The prompt library</p>
-          <span className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-foreground-muted">Early preview · {listPrompts({}).length} sample prompts</span>
+          <span className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium text-foreground-muted">Public prompt library</span>
         </div>
         <h1 className="page-title mt-5">Good work starts with<br className="hidden sm:block" /> <span className="text-accent">a better prompt.</span></h1>
         <p className="mt-4 max-w-2xl text-lg leading-7 text-foreground-muted">Find a useful starting point. Add your context. Make it yours.</p>

@@ -40,7 +40,7 @@ export function PromptLibrary({ prompts, query, useCase, tag, useCases, tags }: 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const update = useCallback((filters: { q?: string; useCase?: string; tag?: string }) => {
+  const update = useCallback((filters: { q?: string; useCase?: string; tag?: string }, options?: { push?: boolean }) => {
     const params = new URLSearchParams();
     const nextQuery = filters.q ?? query;
     const nextUseCase = filters.useCase ?? useCase;
@@ -49,7 +49,11 @@ export function PromptLibrary({ prompts, query, useCase, tag, useCases, tags }: 
     if (nextUseCase) params.set("useCase", nextUseCase);
     if (nextTag) params.set("tag", nextTag);
     const suffix = params.size ? `?${params.toString()}` : "";
-    startTransition(() => router.replace(`/${suffix}`, { scroll: false }));
+    // Discrete filter actions (chip/select/clear) push a history entry so the
+    // browser back/forward buttons step through them; the debounced search
+    // box replaces instead so every keystroke pause doesn't add an entry.
+    const navigate = options?.push ? router.push : router.replace;
+    startTransition(() => navigate(`/${suffix}`, { scroll: false }));
   }, [query, router, tag, useCase]);
   const searchPrompts = useCallback((value: string) => update({ q: value }), [update]);
 
@@ -65,7 +69,7 @@ export function PromptLibrary({ prompts, query, useCase, tag, useCases, tags }: 
         </label>
         <label className="grid gap-1 rounded-xl bg-background-secondary px-4 py-2 text-sm font-medium" htmlFor="tag">
           <span className="text-xs text-foreground-muted">Filter by topic</span>
-          <select id="tag" value={tag} onChange={(event) => update({ tag: event.target.value })} className="w-full min-w-0 bg-transparent py-1 text-base text-foreground">
+          <select id="tag" value={tag} onChange={(event) => update({ tag: event.target.value }, { push: true })} className="w-full min-w-0 bg-transparent py-1 text-base text-foreground">
             <option value="">All topics</option>
             {tag && !tags.includes(tag) && <option value={tag}>{tag}</option>}
             {tags.map((option) => <option key={option}>{option}</option>)}
@@ -73,8 +77,8 @@ export function PromptLibrary({ prompts, query, useCase, tag, useCases, tags }: 
         </label>
       </div>
       <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Filter by use case">
-        <button type="button" className="filter-chip" aria-pressed={!useCase} onClick={() => update({ useCase: "" })}>All use cases</button>
-        {useCases.map((option) => <button type="button" key={option} className="filter-chip" aria-pressed={useCase === option} onClick={() => update({ useCase: option })}>{option}</button>)}
+        <button type="button" className="filter-chip" aria-pressed={!useCase} onClick={() => update({ useCase: "" }, { push: true })}>All use cases</button>
+        {useCases.map((option) => <button type="button" key={option} className="filter-chip" aria-pressed={useCase === option} onClick={() => update({ useCase: option }, { push: true })}>{option}</button>)}
       </div>
       <div className="mb-5 mt-8 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-baseline gap-3">
@@ -83,13 +87,13 @@ export function PromptLibrary({ prompts, query, useCase, tag, useCases, tags }: 
             {isPending ? "Updating results…" : `${prompts.length} ${prompts.length === 1 ? "prompt" : "prompts"}`}
           </p>
         </div>
-        {hasActiveFilters && <button type="button" onClick={() => update({ q: "", useCase: "", tag: "" })} className="btn-quiet text-accent">Clear all filters ×</button>}
+        {hasActiveFilters && <button type="button" onClick={() => update({ q: "", useCase: "", tag: "" }, { push: true })} className="btn-quiet text-accent">Clear all filters ×</button>}
       </div>
       {hasActiveFilters && <div className="mb-5 flex flex-wrap gap-2" aria-label="Active filters">
-        {[query && { label: `Search: ${query}`, clear: { q: "" } }, useCase && { label: `Use case: ${useCase}`, clear: { useCase: "" } }, tag && { label: `Topic: ${tag}`, clear: { tag: "" } }].filter((item) => !!item).map((item) => <button type="button" key={item.label} className="filter-chip" onClick={() => update(item.clear)} aria-label={`Remove ${item.label}`}><span className="max-w-64 truncate">{item.label}</span><span aria-hidden="true">×</span></button>)}
+        {[query && { label: `Search: ${query}`, clear: { q: "" } }, useCase && { label: `Use case: ${useCase}`, clear: { useCase: "" } }, tag && { label: `Topic: ${tag}`, clear: { tag: "" } }].filter((item) => !!item).map((item) => <button type="button" key={item.label} className="filter-chip" onClick={() => update(item.clear, { push: true })} aria-label={`Remove ${item.label}`}><span className="max-w-64 truncate">{item.label}</span><span aria-hidden="true">×</span></button>)}
       </div>}
       {prompts.length === 0 ? (
-        <div className="card px-6 py-12 text-center"><p className="text-xl font-semibold">No prompts match just yet.</p><p className="mt-2 text-base text-foreground-muted">Try a broader search, or remove a filter to see more starting points.</p><button type="button" onClick={() => update({ q: "", useCase: "", tag: "" })} className="btn-primary mt-6">Show all prompts</button></div>
+        <div className="card px-6 py-12 text-center"><p className="text-xl font-semibold">No prompts match just yet.</p><p className="mt-2 text-base text-foreground-muted">Try a broader search, or remove a filter to see more starting points.</p><button type="button" onClick={() => update({ q: "", useCase: "", tag: "" }, { push: true })} className="btn-primary mt-6">Show all prompts</button></div>
       ) : (
         <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" aria-busy={isPending}>
           {prompts.map((prompt) => <li key={prompt.slug} className="min-w-0">

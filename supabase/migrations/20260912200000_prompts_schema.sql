@@ -70,6 +70,12 @@ create table public.prompts (
   constraint prompts_sample_pairing check ((sample_input is null) = (sample_output is null))
 );
 
+-- Keep the search document beside the row so the public query boundary can
+-- use PostgreSQL full-text search without trusting client-side filtering.
+alter table public.prompts add column search_vector tsvector generated always as (
+  to_tsvector('english', title || ' ' || description || ' ' || use_case || ' ' || array_to_string(tags, ' '))
+) stored;
+
 -- Keyset pagination (created_at/published_at + id) avoids the duplicate/
 -- skipped rows that offset pagination can produce when new prompts are
 -- published between page requests.
@@ -79,12 +85,7 @@ create index prompts_published_keyset_idx
 
 create index prompts_owner_idx on public.prompts (owner_id);
 
-create index prompts_search_idx on public.prompts using gin (
-  to_tsvector(
-    'english',
-    title || ' ' || description || ' ' || use_case || ' ' || array_to_string(tags, ' ')
-  )
-);
+create index prompts_search_idx on public.prompts using gin (search_vector);
 
 create trigger prompts_set_updated_at
   before update on public.prompts
@@ -149,6 +150,10 @@ as $$
 declare
   recent_count integer;
 begin
+  -- Serialize concurrent inserts from the same owner so simultaneous
+  -- submissions near the boundary cannot all read the same pre-insert count.
+  perform pg_advisory_xact_lock(1, hashtext(new.owner_id::text));
+
   select count(*) into recent_count
   from public.prompts
   where owner_id = new.owner_id
@@ -270,6 +275,10 @@ as $$
 declare
   recent_count integer;
 begin
+  -- Serialize concurrent inserts from the same reporter so simultaneous
+  -- reports near the boundary cannot all read the same pre-insert count.
+  perform pg_advisory_xact_lock(2, hashtext(new.reporter_id::text));
+
   select count(*) into recent_count
   from public.reports
   where reporter_id = new.reporter_id

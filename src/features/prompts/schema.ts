@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const variableNamePattern = /^[a-z][a-z0-9_]*$/;
+const promptIdSchema = z.string().uuid();
 
 /**
  * Mirrors the `{{name}}` token contract in `template.ts` so a declared
@@ -57,6 +58,14 @@ export const promptSubmissionSchema = z
       return new Set(names).size === names.length;
     },
     { message: "Variable names must be unique.", path: ["variables"] },
+  )
+  .refine(
+    (value) =>
+      value.variables.every((variable) => value.template.includes(`{{${variable.name}}}`)),
+    {
+      message: "Each editable detail must appear in the template as its {{token_name}}.",
+      path: ["variables"],
+    },
   );
 
 export type PromptSubmissionInput = z.infer<typeof promptSubmissionSchema>;
@@ -69,4 +78,10 @@ export function validatePromptSubmission(
     return { error: result.error.issues[0]?.message ?? "Check the prompt details and try again." };
   }
   return { submission: result.data };
+}
+
+/** UUIDs arrive in hidden form fields, so validate them before querying. */
+export function validatePromptId(value: unknown): string | null {
+  const result = promptIdSchema.safeParse(value);
+  return result.success ? result.data : null;
 }

@@ -2,15 +2,12 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { PromptCustomizer } from "@/components/prompt-customizer";
-import { getPromptBySlug, listPromptSlugs } from "@/features/prompts/queries";
+import { PromptCommunityActionForms } from "@/components/prompt-community-actions";
+import { getCommunityPromptState } from "@/features/prompts/account";
+import { getPublishedPromptBySlug, listPromptSlugs } from "@/features/prompts/queries";
 
-/**
- * Every prompt comes from the fixture source, so unknown slugs are 404s rather
- * than on-demand renders. Without this, Next prerendered the `notFound()`
- * result for an unknown slug and served it with HTTP 200. Revisit when prompts
- * are database-backed and new slugs must resolve without a rebuild.
- */
-export const dynamicParams = false;
+/** Database-backed prompts need on-demand route rendering; unknown slugs still 404. */
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return listPromptSlugs().map((slug) => ({ slug }));
@@ -18,8 +15,12 @@ export function generateStaticParams() {
 
 export default async function PromptPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const prompt = getPromptBySlug(slug);
+  const prompt = await getPublishedPromptBySlug(slug);
   if (!prompt) notFound();
+  // Fixture prompts have no persistent ID, so community mutations cannot be
+  // addressed safely. Render the same honest unavailable state used when the
+  // project connection cannot be reached rather than omitting this capability.
+  const communityState = prompt.id ? await getCommunityPromptState(prompt.id) : { kind: "unavailable" as const };
   return (
     <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-5 py-8 md:py-12">
       <Link href="/" className="back-link"><span aria-hidden="true">←</span> Back to all prompts</Link>
@@ -43,6 +44,12 @@ export default async function PromptPage({ params }: { params: Promise<{ slug: s
       <Suspense fallback={<div className="h-96 rounded-2xl border border-border bg-surface" aria-hidden="true" />}>
         <PromptCustomizer prompt={prompt} />
       </Suspense>
+      <section className="mt-8 grid gap-5 border-t border-border pt-8" aria-labelledby="community-actions-heading">
+        <h2 id="community-actions-heading" className="text-xl font-semibold">Help improve the library</h2>
+        {communityState.kind === "unavailable" ? <p className="text-sm leading-6 text-foreground-muted">Community actions are unavailable right now. You can still adapt and share this prompt.</p>
+          : communityState.kind === "anonymous" ? <p className="text-sm leading-6 text-foreground-muted"><Link href={`/auth?next=${encodeURIComponent(`/prompts/${prompt.slug}`)}`} className="font-semibold text-accent underline-offset-4 hover:underline">Sign in</Link> to save this prompt, leave feedback, or report a problem.</p>
+            : <PromptCommunityActionForms promptId={prompt.id!} initialSaved={communityState.saved} initialFeedback={communityState.feedback} />}
+      </section>
     </main>
   );
 }

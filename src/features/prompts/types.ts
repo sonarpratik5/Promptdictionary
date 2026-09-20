@@ -7,6 +7,7 @@ export type PromptVariable = {
 };
 
 export type Prompt = {
+  id?: string;
   slug: string;
   title: string;
   description: string;
@@ -17,4 +18,6 @@ export type Prompt = {
   testedAt?: string;
   variables: PromptVariable[];
   limitations: string;
+  sampleInput?: string;
+  sampleOutput?: string;
 };

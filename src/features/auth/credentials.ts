@@ -61,6 +61,11 @@ export function credentialsFromFormData(formData: FormData): CredentialFields {
   };
 }
 
+/** Only preserve an internal, known destination after authentication. */
+export function safeAuthRedirect(value: unknown): string {
+  return typeof value === "string" && /^\/(?:submit|account|prompts\/[a-z0-9-]+)?$/.test(value) ? value : "/";
+}
+
 export function validateEmail(value: unknown): { email: string } | { error: string } {
   const result = email.safeParse(value);
   return result.success ? { email: result.data } : { error: result.error.issues[0]?.message ?? "Enter a valid email address." };

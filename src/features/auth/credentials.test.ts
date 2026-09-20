@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { validateCredentials, validateEmail, validateNewPassword } from "./credentials";
+import { safeAuthRedirect, validateCredentials, validateEmail, validateNewPassword } from "./credentials";
 
 describe("validateCredentials", () => {
   it("trims an email but preserves the supplied password", () => {
@@ -41,5 +41,13 @@ describe("validateCredentials", () => {
   it("requires a matching, sufficiently long replacement password", () => {
     expect(validateNewPassword("new-password", "different-password")).toEqual({ error: "Passwords do not match." });
     expect(validateNewPassword("new-password", "new-password")).toEqual({ password: "new-password" });
+  });
+
+  it("keeps only known internal destinations after authentication", () => {
+    expect(safeAuthRedirect("/prompts/clear-product-brief")).toBe("/prompts/clear-product-brief");
+    expect(safeAuthRedirect("/submit")).toBe("/submit");
+    expect(safeAuthRedirect("https://example.com")).toBe("/");
+    expect(safeAuthRedirect("//example.com")).toBe("/");
+    expect(safeAuthRedirect("/auth/callback?next=https://example.com")).toBe("/");
   });
 });
